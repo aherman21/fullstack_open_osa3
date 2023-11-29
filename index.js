@@ -45,7 +45,7 @@ let persons = [
 ]
 
 app.get('/', (request, response) => {
-    response.send('<h1>Muru on ihana <3</>')
+    response.send('<h1>Phonebook</>')
 })
 
 app.get('/info', (request, response) => {
