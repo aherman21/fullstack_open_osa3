@@ -4,10 +4,28 @@ const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 const app = express()
+
 const Person = require('./models/person')
+const { allowedNodeEnvironmentFlags } = require('process')
 
 
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({error: 'malformatted id'})
+  }
+  next(error)
+}
+
+const unknwonEndpoint = (request, response) => {
+  response.status(404).send({error: 'unknown endpoint'})
+}
+
+app.use(cors())
 app.use(express.json())
+app.use(express.static('dist'))
+
 morgan.token('body', function (req, res) {return JSON.stringify(req.body)})
 
 app.use(morgan(function (tokens, req, res) {
@@ -20,9 +38,6 @@ app.use(morgan(function (tokens, req, res) {
     tokens.body(req, res)
   ].join(' ')
 }))
-
-app.use(cors())
-app.use(express.static('dist'))
 
 app.get('/', (request, response) => {
     response.send('<h1>Phonebook</>')
@@ -40,19 +55,26 @@ app.get('/api/persons', (request, response) => {
     })
 })
 
-app.get('/api/persons/:id', (request, response) => {
-    Person.findById(request.params.id).then(person => {
+
+app.use(errorHandler)
+
+app.get('/api/persons/:id', (request, response, next) => {
+    Person.findById(request.params.id).
+      then(person => {
         response.json(person)
     })
+    .catch(error => next(error))
 })
 
-// app.delete('/api/persons/:id', (request, response) => {
-//     const id = Number(request.params.id)
-//     persons = persons.filter(person => person.id !== id)
-    
+// deleting person
 
-//     response.status(204).end()
-// })
+app.delete('/api/persons/:id', (request, response, next) => {
+  Person.findByIdAndDelete(request.params.id)
+  .then(result => {
+    response.status(204).end()
+  })
+  .catch(error => next(error))
+})
 
 
 app.post('/api/persons', (request, response) => {
@@ -62,14 +84,6 @@ app.post('/api/persons', (request, response) => {
     return response.status(400).json({
       error: 'name or number missing'
     })
-  // } else if (!body.number) {
-  //   return response.status(400).json({
-  //     error: 'number missing'
-  //   })
-  // } else if (names.includes(body.name)) {
-  //   return response.status(400).json({
-  //     error: 'name already exists in the phonebook'
-  //   })
   }
 
   const person = new Person({
@@ -81,6 +95,10 @@ app.post('/api/persons', (request, response) => {
     response.json(savedPerson)
   })
 })
+
+
+app.use(unknwonEndpoint)
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 const url = process.env.MONGODB_URI
