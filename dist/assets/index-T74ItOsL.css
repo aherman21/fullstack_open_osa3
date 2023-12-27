@@ -1,0 +1,1 @@
+h1{color:green;font-style:italic}.notification{border:1px solid green;color:green}.notification,.rnotification{background-color:wheat;left:50%;padding:1em;position:fixed;top:0;-webkit-transform:translateX(-50%);transform:translateX(-50%);z-index:1000}.rnotification{border:1px solid red;color:red}
