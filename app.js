@@ -1,11 +1,11 @@
 
-const config = require('./utils/config')
 const express = require('express')
 const app = express()
 const morgan = require('morgan')
 const cors = require('cors')
 const personsRouter = require('./controllers/persons')
 const middleware = require('./utils/middleware')
+const config = require('./utils/config')
 const logger = require('./utils/logger')
 const mongoose = require('mongoose')
 
